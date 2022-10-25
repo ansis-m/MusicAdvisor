@@ -23,7 +23,7 @@ Spotify password: Eloraps1
 public class Main {
 
 
-    private static final String port = "8000"; //when changing the port a new authoriazation has to be made at Spotify
+    private static final String port = "8000"; //when changing the port a new authorization has to be made at Spotify
     private final static String serverPath = "http://localhost:" + port;
     private final static String clientId = "e250b9f5fe2848f08f36f20b1274866a";
     private final static String clientSecret = "006e08a74dbd4d5caa1b5fdc8d247687";
@@ -33,7 +33,6 @@ public class Main {
     private static String APIpath;
     private static String url;
     private static int size = 5;
-    private static Pages pages = new Pages(size);
 
     private final static String clientIdSecret = clientId + ":" + clientSecret;
     private static String code = "";
@@ -41,13 +40,13 @@ public class Main {
 
     public static void main(String[] args){
 
+        new Pages(size);
         getServerPath(args);
-        HttpServer server = startServer(port);
+        HttpServer server = startServer();
         authorize(server);
         Scanner scanner = new Scanner(System.in);
-//        Pages pages = new Pages(size);
         while(true) {
-            printPromt();
+            printPrompt();
             String input = scanner.nextLine();
             switch (input) {
                 case ("exit"):
@@ -150,8 +149,7 @@ public class Main {
             for (JsonElement j : jo.getAsJsonObject("albums").getAsJsonArray("items")) {
                 StringBuilder builder = new StringBuilder();
                 if(j.isJsonObject()){
-                    builder.append(j.getAsJsonObject().get("name").getAsString() + "\n");
-                    builder.append("[");
+                    builder.append(j.getAsJsonObject().get("name").getAsString()).append("\n[");
                     boolean first = true;
                     for(JsonElement k : j.getAsJsonObject().getAsJsonArray("artists")){
                         if(k.isJsonObject()) {
@@ -162,7 +160,7 @@ public class Main {
                         }
                     }
                     builder.append("]\n");
-                    builder.append(j.getAsJsonObject().getAsJsonObject("external_urls").get("spotify").getAsString() + "\n");
+                    builder.append(j.getAsJsonObject().getAsJsonObject("external_urls").get("spotify").getAsString()).append("\n");
                     Pages.addOutput(builder.toString());
                 }
             }
@@ -182,7 +180,7 @@ public class Main {
         System.exit(0);
     }
 
-    private static void printPromt() {
+    private static void printPrompt() {
         System.out.println("\nEnter:\t'exit' to exit");
         System.out.println("\t\t'new' to view new releases");
         System.out.println("\t\t'featured' to view featured playlists");
@@ -309,28 +307,23 @@ public class Main {
 
     private static void authorize(HttpServer server) {
 
-        while (true) {
-            try{
-                System.out.println("\n\nUse this link to login into Spotify and authorize the server!");
-                System.out.println(url);
-                System.out.println("waiting for code...");
-                while(code.equals("")) {
-                    Thread.sleep(100);
-                }
-                server.stop(0);
-                getToken();
+        try{
+            System.out.println("\n\nUse this link to login into Spotify and authorize the server!");
+            System.out.println(url);
+            System.out.println("waiting for code...");
+            while(code.equals("")) {
+                Thread.sleep(100);
             }
-            catch (Exception e) {
-                System.out.println("Exception occured while trying to authorize!");
-                System.out.println("Try restarting the program!");
-                System.exit(1);
-            }
-            if (server != null) {
-                server.stop(0);
-                System.out.println("\n--- LOGIN SUCCESS ---\n");
-                break;
-            }
+            server.stop(0);
+            getToken();
         }
+        catch (Exception e) {
+            System.out.println("Exception occurred while trying to authorize!");
+            System.out.println("Try restarting the program!");
+            System.exit(1);
+        }
+        server.stop(0);
+        System.out.println("\n--- LOGIN SUCCESS ---\n");
     }
 
     private static void getToken() throws IOException, InterruptedException {
@@ -353,11 +346,11 @@ public class Main {
 //        System.out.println(response.body());
     }
 
-    private static HttpServer startServer(String port){
+    private static HttpServer startServer(){
 
         try{
             HttpServer server = HttpServer.create();
-            server.bind(new InetSocketAddress(Integer.valueOf(port)), 0);
+            server.bind(new InetSocketAddress(Integer.parseInt(Main.port)), 0);
             server.createContext("/",
                     new HttpHandler() {
                         public void handle(HttpExchange exchange) throws IOException {
